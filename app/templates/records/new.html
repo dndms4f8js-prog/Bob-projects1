@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}新規登録 - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">新規登録</h1>
+  <a href="{{ url_for('records.index') }}" class="btn btn-outline-secondary">← 一覧へ</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('records.new_record') }}">
+      {% include "records/_form.html" %}
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">登録する</button>
+        <a href="{{ url_for('records.index') }}" class="btn btn-outline-secondary">キャンセル</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

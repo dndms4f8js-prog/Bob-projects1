@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}クイズ結果 - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <h1 class="h3 mb-4 text-center">クイズ結果</h1>
+
+    <!-- 正答率サマリ -->
+    <div class="card text-center mb-4">
+      <div class="card-body py-4">
+        <p class="display-4 fw-bold mb-1
+          {% if accuracy >= 80 %}text-success
+          {% elif accuracy >= 50 %}text-warning
+          {% else %}text-danger{% endif %}">
+          {{ accuracy }}%
+        </p>
+        <p class="text-muted">{{ correct_count }} / {{ total }} 問正解</p>
+        <div class="progress mx-auto" style="max-width: 300px; height: 12px;">
+          <div class="progress-bar
+            {% if accuracy >= 80 %}bg-success
+            {% elif accuracy >= 50 %}bg-warning
+            {% else %}bg-danger{% endif %}"
+            style="width: {{ accuracy }}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 間違えた項目 -->
+    {% if wrong_items %}
+      <div class="card mb-4">
+        <div class="card-header text-danger fw-bold">間違えた項目（{{ wrong_items|length }}件）</div>
+        <div class="list-group list-group-flush">
+          {% for item in wrong_items %}
+            <div class="list-group-item">
+              <div class="fw-bold mb-1">{{ item.term }}</div>
+              <div class="small text-success">✅ 正解：{{ item.correct_text }}</div>
+              <div class="small text-danger">❌ あなたの回答：{{ item.selected }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-success text-center">
+        全問正解です！素晴らしい！
+      </div>
+    {% endif %}
+
+    <div class="d-flex gap-2 justify-content-center">
+      <a href="{{ url_for('quiz.setup') }}" class="btn btn-primary">もう一度クイズ</a>
+      <a href="{{ url_for('records.index') }}" class="btn btn-outline-secondary">一覧へ戻る</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

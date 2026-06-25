@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}クイズ {{ index + 1 }}/{{ total }} - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <!-- 進捗バー -->
+    <div class="mb-3">
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>問題 {{ index + 1 }} / {{ total }}</span>
+        <span>{% if mode == 'term' %}用語名を選ぶ{% else %}説明文を選ぶ{% endif %}</span>
+      </div>
+      <div class="progress" style="height: 8px;">
+        <div class="progress-bar" style="width: {{ ((index + 1) / total * 100)|round }}%"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-bold">
+        {% if mode == 'term' %}
+          次の説明文が表す用語名はどれですか？
+        {% else %}
+          「{{ question.term }}」の説明として正しいものはどれですか？
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <!-- 問題文 -->
+        {% if mode == 'term' %}
+          <div class="p-3 bg-light rounded mb-4">
+            <p class="mb-0">{{ question.question_text }}</p>
+          </div>
+        {% endif %}
+
+        <!-- 選択肢フォーム or 結果表示 -->
+        {% if not answered %}
+          <form method="post" action="{{ url_for('quiz.answer') }}">
+            <input type="hidden" name="question_term" value="{{ question.term }}">
+            <div class="d-grid gap-2">
+              {% for choice in question.choices %}
+                <button type="submit" name="choice" value="{{ choice }}"
+                        class="btn btn-outline-primary text-start">
+                  {{ choice }}
+                </button>
+              {% endfor %}
+            </div>
+          </form>
+        {% else %}
+          <!-- 回答後フィードバック -->
+          <div class="alert {% if is_correct %}alert-success{% else %}alert-danger{% endif %} mb-3">
+            {% if is_correct %}
+              ✅ 正解！
+            {% else %}
+              ❌ 不正解。正解は「<strong>{{ question.correct_text }}</strong>」でした。
+            {% endif %}
+          </div>
+          <div class="d-grid gap-2 mb-3">
+            {% for choice in question.choices %}
+              <div class="btn {% if choice == question.correct_text %}btn-success
+                            {% elif choice == selected %}btn-danger
+                            {% else %}btn-outline-secondary{% endif %} text-start">
+                {{ choice }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="d-grid">
+            {% if index + 1 < total %}
+              <a href="{{ url_for('quiz.run') }}" class="btn btn-primary">次の問題へ →</a>
+            {% else %}
+              <a href="{{ url_for('quiz.result') }}" class="btn btn-success">結果を見る</a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

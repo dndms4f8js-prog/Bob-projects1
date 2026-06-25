@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}編集 - {{ record.term }} - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">編集：{{ record.term }}</h1>
+  <a href="{{ url_for('records.detail', record_id=record.id) }}" class="btn btn-outline-secondary">← 詳細へ</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin.edit', record_id=record.id) }}">
+      {% include "records/_form.html" %}
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">更新する</button>
+        <a href="{{ url_for('records.detail', record_id=record.id) }}" class="btn btn-outline-secondary">キャンセル</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

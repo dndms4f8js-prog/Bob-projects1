@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}学習記録一覧 - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">学習記録一覧</h1>
+  <a href="{{ url_for('records.new_record') }}" class="btn btn-primary">+ 新規登録</a>
+</div>
+
+<!-- 検索フォーム -->
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('records.index') }}">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="keyword" placeholder="キーワード検索"
+                 value="{{ selected_keyword }}">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="category">
+            <option value="">すべてのカテゴリ</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="year">
+            <option value="">年</option>
+            {% for y in years %}
+              <option value="{{ y }}" {% if selected_year == y|string %}selected{% endif %}>{{ y }}年</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="month">
+            <option value="">月</option>
+            {% for m in range(1, 13) %}
+              <option value="{{ m }}" {% if selected_month == m|string %}selected{% endif %}>{{ m }}月</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-outline-secondary w-100">検索</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 検索結果件数 -->
+<p class="text-muted small">{{ records|length }} 件</p>
+
+<!-- 記録カード一覧 -->
+{% if records %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    {% for record in records %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h5 class="card-title mb-0">
+                <a href="{{ url_for('records.detail', record_id=record.id) }}" class="text-decoration-none">
+                  {{ record.term }}
+                </a>
+              </h5>
+              <span class="badge bg-secondary">{{ record.category }}</span>
+            </div>
+            {% if record.full_name %}
+              <p class="text-muted small mb-1">{{ record.full_name }}</p>
+            {% endif %}
+            <p class="card-text small text-truncate">{{ record.description | striptags }}</p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="badge bg-info text-dark">理解度 {{ record.understanding }}/5</span>
+              {% if record.quiz_accuracy is not none %}
+                <span class="badge bg-success">正答率 {{ record.quiz_accuracy }}%</span>
+              {% else %}
+                <span class="badge bg-light text-muted">未出題</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer text-muted small">
+            {{ record.registered_year }}年{{ record.registered_month }}月
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <p>記録が見つかりません。</p>
+    <a href="{{ url_for('records.new_record') }}" class="btn btn-primary">最初の記録を登録する</a>
+  </div>
+{% endif %}
+{% endblock %}

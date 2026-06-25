@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}管理ページ - IT学習記録{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">管理ページ</h1>
+  <a href="{{ url_for('records.new_record') }}" class="btn btn-primary btn-sm">+ 新規登録</a>
+</div>
+
+<p class="text-muted small">全{{ records|length }}件</p>
+
+{% if records %}
+  <div class="table-responsive">
+    <table class="table table-hover table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>用語名</th>
+          <th>カテゴリ</th>
+          <th>理解度</th>
+          <th>登録年月</th>
+          <th>正答率</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+          <tr>
+            <td class="text-muted small">{{ record.id }}</td>
+            <td>
+              <a href="{{ url_for('records.detail', record_id=record.id) }}">{{ record.term }}</a>
+            </td>
+            <td><span class="badge bg-secondary">{{ record.category }}</span></td>
+            <td>{{ record.understanding }}/5</td>
+            <td>{{ record.registered_year }}/{{ '%02d' % record.registered_month }}</td>
+            <td>
+              {% if record.quiz_accuracy is not none %}
+                {{ record.quiz_accuracy }}%
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('admin.edit', record_id=record.id) }}"
+                   class="btn btn-outline-primary btn-sm">編集</a>
+                <form method="post"
+                      action="{{ url_for('admin.delete', record_id=record.id) }}"
+                      onsubmit="return confirm('「{{ record.term }}」を削除しますか？')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="text-center py-5 text-muted">
+    <p>記録がありません。</p>
+    <a href="{{ url_for('records.new_record') }}" class="btn btn-primary">最初の記録を登録する</a>
+  </div>
+{% endif %}
+{% endblock %}
