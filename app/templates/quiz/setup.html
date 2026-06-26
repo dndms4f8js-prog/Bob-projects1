@@ -15,8 +15,10 @@
     {% else %}
       <div class="card">
         <div class="card-body">
-          <p class="text-muted text-center mb-4">現在 <strong>{{ total }}件</strong> の記録から出題します。</p>
+          <p class="text-muted text-center mb-4">全 <strong>{{ total }}件</strong> の記録から出題します。</p>
           <form method="post" action="{{ url_for('quiz.start') }}">
+
+            <!-- 出題形式 -->
             <div class="mb-4">
               <label class="form-label fw-bold">出題形式</label>
               <div class="list-group">
@@ -33,6 +35,45 @@
               </div>
             </div>
 
+            <!-- 理解度フィルター -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">出題範囲（理解度フィルター）</label>
+              <div class="list-group">
+                <label class="list-group-item list-group-item-action">
+                  <input type="radio" name="understanding_filter" value="all" class="form-check-input me-2" checked>
+                  <strong>すべて</strong>
+                  <span class="badge bg-secondary ms-2">{{ total }}件</span>
+                </label>
+                <label class="list-group-item list-group-item-action">
+                  <input type="radio" name="understanding_filter" value="weak" class="form-check-input me-2"
+                    {% set weak_count = (understanding_counts[1]|default(0)) + (understanding_counts[2]|default(0)) + (understanding_counts[3]|default(0)) %}
+                    {% if weak_count < 4 %}disabled{% endif %}>
+                  <strong>苦手優先</strong>（理解度1〜3）
+                  <span class="badge bg-warning text-dark ms-2">
+                    {{ (understanding_counts[1]|default(0)) + (understanding_counts[2]|default(0)) + (understanding_counts[3]|default(0)) }}件
+                  </span>
+                  {% set weak_count = (understanding_counts[1]|default(0)) + (understanding_counts[2]|default(0)) + (understanding_counts[3]|default(0)) %}
+                  {% if weak_count < 4 %}
+                    <small class="text-muted d-block">4件未満のため選択不可</small>
+                  {% endif %}
+                </label>
+                <label class="list-group-item list-group-item-action">
+                  <input type="radio" name="understanding_filter" value="strong" class="form-check-input me-2"
+                    {% set strong_count = (understanding_counts[4]|default(0)) + (understanding_counts[5]|default(0)) %}
+                    {% if strong_count < 4 %}disabled{% endif %}>
+                  <strong>得意のみ</strong>（理解度4〜5）
+                  <span class="badge bg-success ms-2">
+                    {{ (understanding_counts[4]|default(0)) + (understanding_counts[5]|default(0)) }}件
+                  </span>
+                  {% set strong_count = (understanding_counts[4]|default(0)) + (understanding_counts[5]|default(0)) %}
+                  {% if strong_count < 4 %}
+                    <small class="text-muted d-block">4件未満のため選択不可</small>
+                  {% endif %}
+                </label>
+              </div>
+            </div>
+
+            <!-- 出題数 -->
             <div class="mb-4">
               <label class="form-label fw-bold">出題数</label>
               <div class="d-flex gap-3">

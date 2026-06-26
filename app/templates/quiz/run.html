@@ -6,9 +6,15 @@
   <div class="col-md-8">
     <!-- 進捗バー -->
     <div class="mb-3">
-      <div class="d-flex justify-content-between small text-muted mb-1">
+      <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
         <span>問題 {{ index + 1 }} / {{ total }}</span>
-        <span>{% if mode == 'term' %}用語名を選ぶ{% else %}説明文を選ぶ{% endif %}</span>
+        <div class="d-flex align-items-center gap-3">
+          <span>{% if mode == 'term' %}用語名を選ぶ{% else %}説明文を選ぶ{% endif %}</span>
+          <form method="post" action="{{ url_for('quiz.abort') }}"
+                onsubmit="return confirm('クイズを中断して設定画面に戻りますか？')">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">中断</button>
+          </form>
+        </div>
       </div>
       <div class="progress" style="height: 8px;">
         <div class="progress-bar" style="width: {{ ((index + 1) / total * 100)|round }}%"></div>
