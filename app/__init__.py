@@ -10,9 +10,15 @@ def create_app():
 
     # --- 設定 ---
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-        app.instance_path, "learning.db"
+
+    _db_uri = os.environ.get(
+        "DATABASE_URL",
+        "sqlite:///" + os.path.join(app.instance_path, "learning.db"),
     )
+    # RenderのPostgreSQL URLは "postgres://" で始まる場合があるため修正
+    if _db_uri.startswith("postgres://"):
+        _db_uri = _db_uri.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = _db_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # instance フォルダを確保
