@@ -49,38 +49,63 @@
 </div>
 
 <!-- 検索結果件数 -->
-<p class="text-muted small">{{ records|length }} 件</p>
+<p class="text-muted small">{{ pagination.total }} 件（{{ pagination.page }}/{{ pagination.pages }} ページ）</p>
 
-<!-- 記録カード一覧 -->
+<!-- 記録一覧（アコーディオン） -->
 {% if records %}
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+  <div class="accordion" id="recordsAccordion">
     {% for record in records %}
-      <div class="col">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-1">
-              <h5 class="card-title mb-0">
-                <a href="{{ url_for('records.detail', record_id=record.id) }}" class="text-decoration-none">
-                  {{ record.term }}
-                </a>
-              </h5>
-              <span class="badge bg-secondary">{{ record.category }}</span>
-            </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ record.id }}">
+          <button class="accordion-button collapsed" type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse-{{ record.id }}"
+                  aria-expanded="false"
+                  aria-controls="collapse-{{ record.id }}">
+            <span class="fw-bold me-3">{{ record.term }}</span>
+            <span class="badge bg-secondary ms-auto me-2">{{ record.category }}</span>
+          </button>
+        </h2>
+        <div id="collapse-{{ record.id }}" class="accordion-collapse collapse"
+             aria-labelledby="heading-{{ record.id }}"
+             data-bs-parent="#recordsAccordion">
+          <div class="accordion-body">
             {% if record.full_name %}
-              <p class="text-muted small mb-1">{{ record.full_name }}</p>
+              <p class="mb-2"><span class="fw-bold">正式名称：</span>{{ record.full_name }}</p>
             {% endif %}
-            <p class="card-text small text-truncate">{{ record.description | striptags }}</p>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="badge bg-info text-dark">理解度 {{ record.understanding }}/5</span>
+
+            <p class="fw-bold mb-1">説明文</p>
+            <div class="mb-3 ps-2 border-start border-2 md-content-{{ record.id }}">
+              <span class="text-muted small md-src" data-md="{{ record.description | e }}"></span>
+            </div>
+
+            {% if record.example %}
+              <p class="fw-bold mb-1">例文</p>
+              <div class="mb-3 ps-2 border-start border-2 md-content-ex-{{ record.id }}">
+                <span class="text-muted small md-src-ex" data-md="{{ record.example | e }}"></span>
+              </div>
+            {% endif %}
+
+            {% if record.keywords %}
+              <p class="fw-bold mb-1">関連キーワード</p>
+              <p class="mb-3">
+                {% for kw in record.keywords.split(',') %}
+                  <span class="badge bg-light text-dark border me-1">{{ kw.strip() }}</span>
+                {% endfor %}
+              </p>
+            {% endif %}
+
+            <p class="text-muted small mb-2">登録年月：{{ record.registered_year }}年{{ record.registered_month }}月</p>
+
+            <div class="d-flex gap-2 mt-2">
               {% if record.quiz_accuracy is not none %}
                 <span class="badge bg-success">正答率 {{ record.quiz_accuracy }}%</span>
               {% else %}
-                <span class="badge bg-light text-muted">未出題</span>
+                <span class="badge bg-light text-dark border">未出題</span>
               {% endif %}
+              <a href="{{ url_for('records.detail', record_id=record.id) }}"
+                 class="btn btn-outline-secondary btn-sm ms-auto">詳細ページへ →</a>
             </div>
-          </div>
-          <div class="card-footer text-muted small">
-            {{ record.registered_year }}年{{ record.registered_month }}月
           </div>
         </div>
       </div>
@@ -92,4 +117,59 @@
     <a href="{{ url_for('records.new_record') }}" class="btn btn-primary">最初の記録を登録する</a>
   </div>
 {% endif %}
+
+<!-- ページネーション -->
+{% if pagination.pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('records.index', page=pagination.prev_num,
+          keyword=selected_keyword, category=selected_category,
+          year=selected_year, month=selected_month) }}">前へ</a>
+      </li>
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('records.index', page=p,
+              keyword=selected_keyword, category=selected_category,
+              year=selected_year, month=selected_month) }}">{{ p }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('records.index', page=pagination.next_num,
+          keyword=selected_keyword, category=selected_category,
+          year=selected_year, month=selected_month) }}">次へ</a>
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // アコーディオンが開いたときに説明文・例文をMarkdownレンダリング
+  document.querySelectorAll('.accordion-collapse').forEach(function (collapse) {
+    collapse.addEventListener('show.bs.collapse', function () {
+      // 説明文
+      this.querySelectorAll('.md-src').forEach(function (el) {
+        var parent = el.parentElement;
+        if (!parent.dataset.rendered) {
+          parent.innerHTML = marked.parse(el.dataset.md || '');
+          parent.dataset.rendered = '1';
+        }
+      });
+      // 例文
+      this.querySelectorAll('.md-src-ex').forEach(function (el) {
+        var parent = el.parentElement;
+        if (!parent.dataset.rendered) {
+          parent.innerHTML = marked.parse(el.dataset.md || '');
+          parent.dataset.rendered = '1';
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

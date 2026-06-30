@@ -6,93 +6,96 @@
   <h1 class="h3 mb-0">{{ record.term }}</h1>
   <div class="d-flex gap-2">
     <a href="{{ url_for('admin.edit', record_id=record.id) }}" class="btn btn-outline-primary btn-sm">編集</a>
+    <a href="{{ url_for('records.new_record') }}" class="btn btn-outline-success btn-sm">+ 続けて新規登録</a>
     <a href="{{ url_for('records.index') }}" class="btn btn-outline-secondary btn-sm">← 一覧へ</a>
   </div>
 </div>
 
-<div class="row g-4">
-  <!-- メイン情報 -->
-  <div class="col-lg-8">
-    <div class="card mb-3">
-      <div class="card-header">基本情報</div>
-      <div class="card-body">
-        {% if record.full_name %}
-          <p><span class="fw-bold">正式名称：</span>{{ record.full_name }}</p>
-        {% endif %}
-        <p>
-          <span class="badge bg-secondary me-2">{{ record.category }}</span>
-          <span class="badge bg-info text-dark">理解度 {{ record.understanding }}/5</span>
-        </p>
-        <p class="text-muted small">
-          登録：{{ record.registered_year }}年{{ record.registered_month }}月 ／
-          作成日：{{ record.created_at.strftime('%Y-%m-%d') }}
-        </p>
-      </div>
-    </div>
-
-    <div class="card mb-3">
-      <div class="card-header">説明文</div>
-      <div class="card-body">
-        <div id="description-rendered"></div>
-        <textarea id="description-source" class="d-none">{{ record.description }}</textarea>
-      </div>
-    </div>
-
-    {% if record.example %}
-      <div class="card mb-3">
-        <div class="card-header">例文</div>
-        <div class="card-body">
-          <p class="mb-0">{{ record.example }}</p>
-        </div>
-      </div>
+<!-- 基本情報（カテゴリ＋クイズ統計） -->
+<div class="card mb-3">
+  <div class="card-header">基本情報</div>
+  <div class="card-body">
+    {% if record.full_name %}
+      <p class="mb-2"><span class="fw-bold">正式名称：</span>{{ record.full_name }}</p>
     {% endif %}
+    <p class="mb-3">
+      <span class="badge bg-secondary">{{ record.category }}</span>
+    </p>
 
-    {% if record.keywords %}
-      <div class="card mb-3">
-        <div class="card-header">関連キーワード</div>
-        <div class="card-body">
-          {% for kw in record.keywords.split(',') %}
-            <span class="badge bg-light text-dark border me-1">{{ kw.strip() }}</span>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- クイズ統計 -->
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header">クイズ統計</div>
-      <div class="card-body text-center">
-        <p class="display-6 fw-bold mb-0">
+    <!-- クイズ統計 -->
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div class="text-center">
+        <p class="h4 fw-bold mb-0">
           {% if record.quiz_accuracy is not none %}
             {{ record.quiz_accuracy }}%
           {% else %}
             -
           {% endif %}
         </p>
-        <p class="text-muted small mb-3">正答率</p>
-        <table class="table table-sm table-bordered text-center mb-0">
-          <thead class="table-light">
-            <tr><th>出題数</th><th>正解</th><th>不正解</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ record.quiz_total }}</td>
-              <td class="text-success">{{ record.quiz_correct }}</td>
-              <td class="text-danger">{{ record.quiz_incorrect }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <p class="text-muted small mb-0">正答率</p>
       </div>
+      <table class="table table-sm table-bordered text-center mb-0" style="max-width: 300px;">
+        <thead class="table-light">
+          <tr><th>出題数</th><th>正解</th><th>不正解</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ record.quiz_total }}</td>
+            <td class="text-success">{{ record.quiz_correct }}</td>
+            <td class="text-danger">{{ record.quiz_incorrect }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
+
+<!-- 説明文 -->
+<div class="card mb-3">
+  <div class="card-header">説明文</div>
+  <div class="card-body">
+    <div id="description-rendered"></div>
+    <textarea id="description-source" class="d-none">{{ record.description }}</textarea>
+  </div>
+</div>
+
+<!-- 例文 -->
+{% if record.example %}
+  <div class="card mb-3">
+    <div class="card-header">例文</div>
+    <div class="card-body">
+      <div id="example-rendered"></div>
+      <textarea id="example-source" class="d-none">{{ record.example }}</textarea>
+    </div>
+  </div>
+{% endif %}
+
+<!-- 関連キーワード -->
+{% if record.keywords %}
+  <div class="card mb-3">
+    <div class="card-header">関連キーワード</div>
+    <div class="card-body">
+      {% for kw in record.keywords.split(',') %}
+        <span class="badge bg-light text-dark border me-1">{{ kw.strip() }}</span>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- 登録日・作成日（目立たない小テキスト） -->
+<p class="text-muted mt-4 mb-0" style="font-size: 0.78rem;">
+  登録年月：{{ record.registered_year }}年{{ record.registered_month }}月　／　作成日：{{ record.created_at.strftime('%Y-%m-%d') }}
+</p>
 {% endblock %}
 
 {% block scripts %}
 <script>
   const src = document.getElementById('description-source').value;
   document.getElementById('description-rendered').innerHTML = marked.parse(src);
+
+  const exSrcEl = document.getElementById('example-source');
+  if (exSrcEl) {
+    document.getElementById('example-rendered').innerHTML = marked.parse(exSrcEl.value);
+  }
 </script>
 {% endblock %}

@@ -17,7 +17,6 @@
           <th>ID</th>
           <th>用語名</th>
           <th>カテゴリ</th>
-          <th>理解度</th>
           <th>登録年月</th>
           <th>正答率</th>
           <th>操作</th>
@@ -31,7 +30,6 @@
               <a href="{{ url_for('records.detail', record_id=record.id) }}">{{ record.term }}</a>
             </td>
             <td><span class="badge bg-secondary">{{ record.category }}</span></td>
-            <td>{{ record.understanding }}/5</td>
             <td>{{ record.registered_year }}/{{ '%02d' % record.registered_month }}</td>
             <td>
               {% if record.quiz_accuracy is not none %}

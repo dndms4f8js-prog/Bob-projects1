@@ -6,6 +6,8 @@ from datetime import datetime
 
 bp = Blueprint("records", __name__)
 
+PER_PAGE = 20
+
 
 @bp.route("/")
 def index():
@@ -13,6 +15,7 @@ def index():
     category = request.args.get("category", "").strip()
     year = request.args.get("year", "").strip()
     month = request.args.get("month", "").strip()
+    page = request.args.get("page", 1, type=int)
 
     query = Record.query
 
@@ -32,13 +35,16 @@ def index():
     if month:
         query = query.filter(Record.registered_month == int(month))
 
-    records = query.order_by(Record.created_at.desc()).all()
+    pagination = query.order_by(Record.created_at.desc()).paginate(
+        page=page, per_page=PER_PAGE, error_out=False
+    )
     current_year = datetime.utcnow().year
     years = list(range(current_year, current_year - 10, -1))
 
     return render_template(
         "index.html",
-        records=records,
+        pagination=pagination,
+        records=pagination.items,
         categories=CATEGORIES,
         years=years,
         selected_keyword=keyword,
@@ -63,7 +69,7 @@ def new_record():
             description=request.form.get("description", ""),
             example=request.form.get("example", "").strip() or None,
             keywords=request.form.get("keywords", "").strip() or None,
-            understanding=int(request.form.get("understanding", 3)),
+            understanding=3,
             registered_year=int(request.form.get("registered_year")),
             registered_month=int(request.form.get("registered_month")),
         )

@@ -31,7 +31,7 @@ def edit(record_id):
         record.description = request.form.get("description", "")
         record.example = request.form.get("example", "").strip() or None
         record.keywords = request.form.get("keywords", "").strip() or None
-        record.understanding = int(request.form.get("understanding", 3))
+        record.understanding = 3
         record.registered_year = int(request.form.get("registered_year"))
         record.registered_month = int(request.form.get("registered_month"))
 

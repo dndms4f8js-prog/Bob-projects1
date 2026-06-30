@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
+import re
 
 db = SQLAlchemy()
 
@@ -25,6 +26,33 @@ def create_app():
     os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
+
+    # Markdownをプレーンテキスト化するJinja2フィルター（一覧カード用）
+    @app.template_filter('md_plain')
+    def md_plain(text):
+        """Markdown記号を除去してプレーンテキストに変換する。"""
+        if not text:
+            return ''
+        # 見出し（# ## ###）
+        text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+        # 太字・斜体（** __ で囲まれた部分 → 中身だけ残す）
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+        text = re.sub(r'__(.+?)__', r'\1', text)
+        text = re.sub(r'\*(.+?)\*', r'\1', text)
+        text = re.sub(r'_(.+?)_', r'\1', text)
+        # 残留した単独の * や _ を除去
+        text = re.sub(r'\*+', '', text)
+        # 箇条書き（行頭の - / * / + ）
+        text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
+        # 行中に残った「 - 」区切り（箇条書きが改行なしで連結されたケース）
+        text = re.sub(r'\s*-\s+', ' ', text)
+        # インラインコード
+        text = re.sub(r'`([^`]+)`', r'\1', text)
+        # リンク [text](url)
+        text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+        # 複数スペース・改行を1スペースに正規化
+        text = re.sub(r'\s+', ' ', text)
+        return text.strip()
 
     # Blueprint 登録
     from app.routes.records import bp as records_bp

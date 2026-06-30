@@ -15,14 +15,9 @@ SESSION_MODE = "quiz_mode"
 @bp.route("/", methods=["GET"])
 def setup():
     total = Record.query.count()
-    # 理解度別の件数を集計してUIに渡す
-    understanding_counts = {}
-    for level in range(1, 6):
-        understanding_counts[level] = Record.query.filter_by(understanding=level).count()
     return render_template(
         "quiz/setup.html",
         total=total,
-        understanding_counts=understanding_counts,
     )
 
 
@@ -30,17 +25,8 @@ def setup():
 def start():
     mode = request.form.get("mode", "term")       # "term" or "desc"
     count = int(request.form.get("count", 10))    # 10 or 30
-    understanding_filter = request.form.get("understanding_filter", "all")
 
-    # 理解度フィルター適用
-    if understanding_filter == "weak":
-        # 理解度1〜3のみ（苦手優先）
-        all_records = Record.query.filter(Record.understanding <= 3).all()
-    elif understanding_filter == "strong":
-        # 理解度4〜5のみ（得意のみ）
-        all_records = Record.query.filter(Record.understanding >= 4).all()
-    else:
-        all_records = Record.query.all()
+    all_records = Record.query.all()
 
     if len(all_records) < 4:
         flash("フィルター条件に合う記録が4件未満です。条件を変えてお試しください。", "danger")
